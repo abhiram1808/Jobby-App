@@ -1,11 +1,10 @@
-import {Component} from 'react'
+import React, {Component} from 'react'
 import Cookies from 'js-cookie'
 import Loader from 'react-loader-spinner'
 import {BsSearch} from 'react-icons/bs'
 import Header from '../Header'
 import FiltersGroup from '../FiltersGroup'
 import JobCard from '../JobCard'
-
 import './index.css'
 
 const employmentTypesList = [
@@ -46,6 +45,8 @@ const salaryRangesList = [
   },
 ]
 
+const locationsList = ['Hyderabad', 'Bangalore', 'Chennai', 'Delhi', 'Mumbai']
+
 const apiStatusConstants = {
   initial: 'INITIAL',
   success: 'SUCCESS',
@@ -60,6 +61,7 @@ class Jobs extends Component {
     employeeType: [],
     minimumSalary: 0,
     searchInput: '',
+    selectedLocations: [],
   }
 
   componentDidMount() {
@@ -70,8 +72,9 @@ class Jobs extends Component {
     this.setState({
       apiStatus: apiStatusConstants.inProgress,
     })
-    const {employeeType, minimumSalary, searchInput} = this.state
-    const apiUrl = `https://apis.ccbp.in/jobs?employment_type=${employeeType.join()}&minimum_package=${minimumSalary}&search=${searchInput}`
+    const {employeeType, minimumSalary, searchInput, selectedLocations} =
+      this.state
+    const apiUrl = `https://apis.ccbp.in/jobs?employment_type=${employeeType.join()}&minimum_package=${minimumSalary}&search=${searchInput}&location=${selectedLocations.join()}`
     const jwtToken = Cookies.get('jwt_token')
 
     const options = {
@@ -104,8 +107,48 @@ class Jobs extends Component {
     }
   }
 
+  changeLocation = location => {
+    this.setState(prevState => {
+      const {selectedLocations} = prevState
+      if (selectedLocations.includes(location)) {
+        return {
+          selectedLocations: selectedLocations.filter(
+            item => item !== location,
+          ), // Remove location if already selected
+        }
+      }
+      return {
+        selectedLocations: [...selectedLocations, location], // Add location if not already selected
+      }
+    }, this.getJobs) // Trigger API call after updating the state
+  }
+
+  changeEmployeeList = type => {
+    this.setState(
+      prevState => ({
+        employeeType: [...prevState.employeeType, type],
+      }),
+      this.getJobs,
+    )
+  }
+
+  changeSalary = salary => {
+    this.setState({minimumSalary: salary}, this.getJobs)
+  }
+
+  changeSearchInput = event => {
+    this.setState({searchInput: event.target.value})
+  }
+
+  onEnterSearchInput = event => {
+    if (event.key === 'Enter') {
+      this.getJobs()
+    }
+  }
+
   renderJobsList = () => {
     const {jobsList} = this.state
+    if (!jobsList) return null
     const renderJobsList = jobsList.length > 0
 
     return renderJobsList ? (
@@ -174,29 +217,8 @@ class Jobs extends Component {
     }
   }
 
-  changeSearchInput = event => {
-    this.setState({searchInput: event.target.value})
-  }
-
-  onEnterSearchInput = event => {
-    if (event.key === 'Enter') {
-      this.getJobs()
-    }
-  }
-
-  changeSalary = salary => {
-    this.setState({minimumSalary: salary}, this.getJobs)
-  }
-
-  changeEmployeeList = type => {
-    this.setState(
-      prev => ({employeeType: [...prev.employeeType, type]}),
-      this.getJobs,
-    )
-  }
-
   render() {
-    const {searchInput} = this.state
+    const {searchInput, selectedLocations} = this.state
     return (
       <>
         <Header />
@@ -205,11 +227,14 @@ class Jobs extends Component {
             <FiltersGroup
               employmentTypesList={employmentTypesList}
               salaryRangesList={salaryRangesList}
+              locationsList={locationsList} // Pass locations list
               changeSearchInput={this.changeSearchInput}
               searchInput={searchInput}
               getJobs={this.getJobs}
               changeSalary={this.changeSalary}
               changeEmployeeList={this.changeEmployeeList}
+              changeLocation={this.changeLocation} // Pass this method to FiltersGroup
+              selectedLocations={selectedLocations} // Pass selectedLocations state to FiltersGroup
             />
             <div className="search-input-jobs-list-container">
               <div className="search-input-container-desktop">
@@ -237,4 +262,5 @@ class Jobs extends Component {
     )
   }
 }
+
 export default Jobs

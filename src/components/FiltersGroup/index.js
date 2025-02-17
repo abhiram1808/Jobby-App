@@ -1,14 +1,13 @@
 import {BsSearch} from 'react-icons/bs'
-
-// eslint-disable-next-line import/extensions
 import ProfileDetails from '../ProfileDetails'
 import './index.css'
 
 const FiltersGroup = props => {
-  const onChangeSearchInput = event => {
-    const {changeSearchInput} = props
-    changeSearchInput(event)
-  }
+  const {
+    locationsList,
+    changeLocation,
+    selectedLocations,
+  } = props;
 
   const onEnterSearchInput = event => {
     const {getJobs} = props
@@ -42,13 +41,12 @@ const FiltersGroup = props => {
   }
 
   const renderTypeOfEmployment = () => {
-    const {employmentTypesList} = props
+    const {employmentTypesList, changeEmployeeList} = props
     return (
       <div className="employment-type-container">
-        <h1 className="employment-type-heading"> Type of Employment</h1>
+        <h1 className="employment-type-heading">Type of Employment</h1>
         <ul className="employee-type-list-container">
           {employmentTypesList.map(eachEmployeeType => {
-            const {changeEmployeeList} = props
             const onSelectEmployeeType = event => {
               changeEmployeeList(event.target.value)
             }
@@ -79,13 +77,12 @@ const FiltersGroup = props => {
   }
 
   const renderSalaryRange = () => {
-    const {salaryRangesList} = props
+    const {salaryRangesList, changeSalary} = props
     return (
       <div className="salary-range-container">
         <h1 className="salary-range-heading">Salary Range</h1>
         <ul className="salary-range-list-container">
           {salaryRangesList.map(eachSalary => {
-            const {changeSalary} = props
             const onClickSalary = () => {
               changeSalary(eachSalary.salaryRangeId)
             }
@@ -115,6 +112,37 @@ const FiltersGroup = props => {
     )
   }
 
+  const renderLocations = () => {
+    const {locationsList, changeLocation, selectedLocations} = props
+    return (
+      <div className="locations-container">
+        <h1 className="locations-heading">Locations</h1>
+        <ul className="locations-list-container">
+          {locationsList.map(location => {
+            const onSelectLocation = event => {
+              changeLocation(location) // This will update the state with the new location
+            }
+            return (
+              <li className="location-item" key={location}>
+                <input
+                  type="checkbox"
+                  id={location}
+                  className="check-input"
+                  value={location}
+                  checked={selectedLocations.includes(location)} // Checkbox should reflect selected state
+                  onChange={onSelectLocation} // Handle the location selection toggle
+                />
+                <label htmlFor={location} className="check-label">
+                  {location}
+                </label>
+              </li>
+            )
+          })}
+        </ul>
+      </div>
+    )
+  }
+
   return (
     <div className="filters-group-container">
       {renderSearchInput()}
@@ -123,7 +151,10 @@ const FiltersGroup = props => {
       {renderTypeOfEmployment()}
       <hr className="horizontal-line" />
       {renderSalaryRange()}
+      <hr className="horizontal-line" />
+      {renderLocations()}
     </div>
   )
 }
+
 export default FiltersGroup
